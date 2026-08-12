@@ -10,8 +10,8 @@ resource "aws_internet_gateway" "project_igw" {
 
 resource "aws_subnet" "project_subnets" {
 for_each = var.subnets
-cidr_block = var.cidr_subnet
-availability_zone = var.AZs
+cidr_block = each.value.cidr_subnet
+availability_zone = each.value.AZs
 vpc_id = aws_vpc.project_vpc.id
 
 tags = {
