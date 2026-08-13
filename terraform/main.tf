@@ -6,3 +6,6 @@ modules "vpc" {
 project_rta -var.project_rta 
 }
 
+modules "iam" {
+source = "./modules/iam"
+node_policy = var.node_policy 
