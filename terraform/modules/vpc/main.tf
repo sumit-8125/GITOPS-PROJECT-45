@@ -62,3 +62,10 @@ nat_gatway_id = each.value.nat_gateway_id }
 }
 
 
+resource "aws_route_table_association" "project_rta" {
+for_each = var.route_association 
+subnet_id = aws_subnet.project_subnets[each.value.subnet_key].id
+route_table_id = aws_route_table[each.value.route_table_key].id 
+}
+
+
