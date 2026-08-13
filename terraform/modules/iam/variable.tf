@@ -1,6 +1,6 @@
 variable "node_policy" {
 type = map(object({
 role = string 
-arn = string 
+policy_arn = string 
 }))
 }
