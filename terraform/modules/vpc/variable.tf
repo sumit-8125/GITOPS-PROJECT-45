@@ -14,6 +14,13 @@ type = map(object({
 cidr_block = string 
 gateway_id = optional(string) 
 nat_gateway_id = optional(string) 
-}   ) ) 
+}  ) ) 
 }
 
+
+variable "project_rta" {
+type = map(object({
+subent_key = string 
+route_table_key = string 
+}))
+}
