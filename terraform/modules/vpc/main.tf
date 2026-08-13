@@ -8,6 +8,8 @@ resource "aws_internet_gateway" "project_igw" {
  vpc_id = aws_vpc.project_vpc.id
  }
 
+## for_each with map(object()) 
+
 resource "aws_subnet" "project_subnets" {
 for_each = var.subnets
 cidr_block = each.value.cidr_subnet
@@ -35,13 +37,28 @@ Name = "gitops-nat-gateway"
 }
 }
 
+## use dynamic + conditional approach to make multiple route table and  add route 
+
 resource "aws_route_table" "for_project" {
 for_each = var.route_table 
 vpc_id = aws_vpc.project_vpc.id
-route { 
-cidr_block     = each.value.cidr_block
-    gateway_id     = each.value.gateway_id
-    nat_gateway_id = each.value.nat_gateway_id}
+
+dynamic "route" { 
+for_each = each.value.gateway_id != null ? [1] : []
+
+content {
+cidr_block = each.value.cidr_block 
+gateway_id = each.value.gateway_id }
+}
+
+
+dynamic "route" {
+for_each = each.value.nat_gateway_id != null ? [1] : []
+
+content {
+cidr_block = each.value.cidr_block 
+nat_gatway_id = each.value.nat_gateway_id }
+}
 }
 
 
