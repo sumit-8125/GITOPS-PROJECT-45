@@ -13,8 +13,35 @@ for_each = var.subnets
 cidr_block = each.value.cidr_subnet
 availability_zone = each.value.AZs
 vpc_id = aws_vpc.project_vpc.id
-
 tags = {
-name = "gitops-$(each.key)"
+Name = "gitops-${each.key}"
 }
 }
+
+resource "aws_eip" "for_nat" { 
+availability_zone = "ap-south-1a"
+domain = "vpc"
+tags {
+Name = "gitops-eip"
+}
+}
+
+resource "aws_nat_gateway" "project_nat" {
+availability_zone = "ap-south-1a" 
+allocation_id = aws_eip.for_nat.id 
+subnet_id = aws_subnet.project_subnets["public-a"].id
+tags = {
+Name = "gitops-nat-gateway"
+}
+}
+
+resource "aws_route_table" "for_project" {
+for_each = var.route_table 
+vpc_id = aws_vpc.project_vpc.id
+route { 
+cidr_block     = each.value.cidr_block
+    gateway_id     = each.value.gateway_id
+    nat_gateway_id = each.value.nat_gateway_id}
+}
+
+
