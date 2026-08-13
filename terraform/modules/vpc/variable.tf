@@ -9,4 +9,11 @@ AZs = string
 type = string 
 }
 
-variable ""
+variable "route_table" {
+type = map(object({
+cidr_block = string 
+gateway_id = optional(string) 
+nat_gateway_id = optional(string) 
+}   ) ) 
+}
+
