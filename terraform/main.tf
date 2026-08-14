@@ -11,3 +11,8 @@ modules "iam" {
 source = "./modules/iam"
 node_policy = var.node_policy 
 oidc_issuer_url = module.eks.oidc_issuer_url 
+}
+
+
+
+
