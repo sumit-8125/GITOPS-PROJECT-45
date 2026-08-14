@@ -27,7 +27,6 @@ Name = "gitops-${each.key}"
 
 
 resource "aws_eip" "for_nat" { 
-availability_zone = "ap-south-1a"
 domain = "vpc"
 tags = {
 Name = "gitops-eip"
@@ -42,6 +41,9 @@ subnet_id = aws_subnet.project_subnets["public-a"].id
 tags = {
 Name = "gitops-nat-gateway"
 }
+depends_on = [
+    aws_internet_gateway.project_igw
+  ]
 }
 
 
