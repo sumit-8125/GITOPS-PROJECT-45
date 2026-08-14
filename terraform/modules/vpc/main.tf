@@ -29,7 +29,7 @@ Name = "gitops-${each.key}"
 resource "aws_eip" "for_nat" { 
 availability_zone = "ap-south-1a"
 domain = "vpc"
-tags {
+tags = {
 Name = "gitops-eip"
 }
 }
@@ -37,7 +37,6 @@ Name = "gitops-eip"
 
 
 resource "aws_nat_gateway" "project_nat" {
-availability_zone = "ap-south-1a" 
 allocation_id = aws_eip.for_nat.id 
 subnet_id = aws_subnet.project_subnets["public-a"].id
 tags = {
@@ -66,7 +65,7 @@ for_each = each.value.nat_gateway_id != null ? [1] : []
 
 content {
 cidr_block = each.value.cidr_block 
-nat_gatway_id = each.value.nat_gateway_id }
+nat_gateway_id = each.value.nat_gateway_id }
 }
 }
 
@@ -75,7 +74,7 @@ nat_gatway_id = each.value.nat_gateway_id }
 resource "aws_route_table_association" "project_rta" {
 for_each = var.route_association 
 subnet_id = aws_subnet.project_subnets[each.value.subnet_key].id
-route_table_id = aws_route_table[each.value.route_table_key].id 
+route_table_id = aws_route_table.for_project[each.value.route_table_key].id 
 }
 
 
