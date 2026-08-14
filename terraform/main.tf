@@ -1,10 +1,10 @@
 modules "vpc" {
  source = "./modules/vpc"
  vpc_cidr = var.vpc_cidr
- subnets = var.subents 
+ subnets = var.subnets 
 route_table = var.route_table
  route_association = var.route_association
-project_rta = var.project_rta 
+
 }
 
 modules "iam" {
