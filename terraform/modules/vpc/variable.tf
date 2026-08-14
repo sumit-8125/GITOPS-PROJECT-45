@@ -6,7 +6,7 @@ variable "subnets" {
  type = map(object({
  cidr_subnet = string 
 AZs = string 
-type = string 
+type = string }))
 }
 
 variable "route_table" {
