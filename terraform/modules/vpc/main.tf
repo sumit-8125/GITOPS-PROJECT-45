@@ -79,28 +79,5 @@ route_table_id = aws_route_table.for_project[each.value.route_table_key].id
 
 
 
-### for_each + dynamic approach 
-
-resource "aws_security_group"  "sg_for_project" {
-vpc_id = aws_vpc.project_vpc.id
-for_each = var.sg_group
-name = each.key 
-
-dynamic "ingress" {
-for_each = var.ingress_rule
-from_port = ingress.value.form_port
-to_port = ingress.value.to_port
-protocol = ingress.value.protocol 
-cidr_block = ingress.value.protocol 
-  }
-
-dynamic "egress" {
-for_each = var.egress_rule
-from_port = egress.value.from_port
-to_port = egress.value.to_port
-cidr_block = egress.value.cidr_block 
-protocol = egress.value.cidr_block 
-}
-}
 
 
