@@ -1,3 +1,38 @@
+/*  oidc provider 
+ 1. EKS Cluster create
+        ↓
+2. EKS ek OIDC issuer URL provide karta hai
+        ↓
+3. Terraform us URL ko read karta hai
+        ↓
+4. tls_certificate us URL ka TLS certificate read karta hai
+        ↓
+5. Certificate ka fingerprint milta hai
+        ↓
+6. IAM OIDC Provider create hota hai
+*/ 
+
+
+data "tls_certificate" "eks" {
+  url = var.oidc_issuer_url
+}
+
+resource "aws_iam_openid_connect_provider" "eks" {
+  url = var.oidc_issuer_url
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+
+  thumbprint_list = [
+    data.tls_certificate.eks.certificates[0].sha1_fingerprint
+  ]
+}
+
+
+
+
+
 ### role for eks-cluster
 
 data "aws_iam_policy_document" "eks_cluster_assume_role" {
