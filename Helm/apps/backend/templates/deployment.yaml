@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: backend, namespace: backend}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector: {matchLabels: {app: backend}}
+  template:
+    metadata: {labels: {app: backend}}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+      - name: backend
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports: [{name: http, containerPort: {{ .Values.containerPort }}}]
+        envFrom:
+        - secretRef: {name: backend-runtime}
+        resources: {{- toYaml .Values.resources | nindent 10 }}

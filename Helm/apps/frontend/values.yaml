@@ -1,0 +1,18 @@
+replicaCount: 2
+image:
+  repository: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/cloudflux/frontend
+  tag: REPLACE_ME
+  pullPolicy: IfNotPresent
+service:
+  port: 80
+  targetPort: 8080
+containerPort: 8080
+ingress:
+  enabled: true
+  className: alb
+  host: app.example.com
+  scheme: internet-facing
+  targetType: ip
+resources:
+  requests: {cpu: 100m, memory: 128Mi}
+  limits: {cpu: 500m, memory: 512Mi}
