@@ -10,7 +10,7 @@ module "eks" {
 
   enable_irsa = true
 
-  cluster_enabled_log_types = ["api", "audit", "authenticator"]
+  enabled_log_types = ["api", "audit", "authenticator"]
 
   endpoint_public_access  = true
   endpoint_private_access = true
@@ -27,7 +27,7 @@ module "eks" {
     }
   }
 
-  cluster_addons = {
+  addons = {
     coredns = {
       most_recent = true
     }
