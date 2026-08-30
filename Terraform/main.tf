@@ -1,13 +1,13 @@
 module "network" {
   source = "./modules/network"
 
-  project_name       = var.project_name
-  environment        = var.environment
-  vpc_cidr           = var.vpc_cidr
-  azs                = var.azs
-  public_subnets     = var.public_subnets
+  project_name        = var.project_name
+  environment         = var.environment
+  vpc_cidr            = var.vpc_cidr
+  azs                 = var.azs
+  public_subnets      = var.public_subnets
   private_app_subnets = var.private_app_subnets
-  private_db_subnets = var.private_db_subnets
+  private_db_subnets  = var.private_db_subnets
 }
 
 module "eks" {

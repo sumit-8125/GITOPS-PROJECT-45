@@ -5,4 +5,4 @@ serviceAccount:
   create: true
   name: aws-load-balancer-controller
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-aws-lb-controller
+    eks.amazonaws.com/role-arn: arn:aws:iam::327425719754:role/hitman-cloudflux-prod-aws-lb-controller

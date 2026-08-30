@@ -45,7 +45,7 @@ variable "private_db_subnets" {
 
 variable "eks_version" {
   type        = string
-  default     = "1.33"
+  default     = "1.31"
 }
 
 variable "node_instance_types" {
@@ -92,21 +92,25 @@ variable "db_multi_az" {
 variable "github_org" {
   type        = string
   description = "GitHub organization/user."
+  default     = "sumit-8125"
 }
 
 variable "frontend_repo" {
   type        = string
   description = "Frontend repository name."
+  default     = "GITOPS-PROJECT-45"
 }
 
 variable "backend_repo" {
   type        = string
   description = "Backend repository name."
+  default     = "GITOPS-PROJECT-45"
 }
 
 variable "terraform_repo" {
   type        = string
   description = "Terraform repository name."
+  default     = "GITOPS-PROJECT-45"
 }
 
 variable "github_branch" {

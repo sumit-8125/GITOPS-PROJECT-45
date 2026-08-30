@@ -16,7 +16,7 @@ permissions:
 env:
   AWS_REGION: "ap-south-1"
   ECR_REPOSITORY: "hitman-cloudflux/frontend"
-  ROLE_TO_ASSUME: ${{ secrets.AWS_FRONTEND_ROLE_ARN || 'arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-github-frontend-ecr' }}
+  ROLE_TO_ASSUME: ${{ secrets.AWS_FRONTEND_ROLE_ARN || 'arn:aws:iam::327425719754:role/hitman-cloudflux-prod-github-frontend-ecr' }}
   HELM_VALUES_FILE: "Helm/apps/frontend/values.yaml"
   CONTEXT_DIR: "./app/frontend"
 

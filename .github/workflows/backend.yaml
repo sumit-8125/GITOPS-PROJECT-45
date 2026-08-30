@@ -16,7 +16,7 @@ permissions:
 env:
   AWS_REGION: "ap-south-1"
   ECR_REPOSITORY: "hitman-cloudflux/backend"
-  ROLE_TO_ASSUME: ${{ secrets.AWS_BACKEND_ROLE_ARN || 'arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-github-backend-ecr' }}
+  ROLE_TO_ASSUME: ${{ secrets.AWS_BACKEND_ROLE_ARN || 'arn:aws:iam::327425719754:role/hitman-cloudflux-prod-github-backend-ecr' }}
   HELM_VALUES_FILE: "Helm/apps/backend/values.yaml"
   CONTEXT_DIR: "./app/backend"
 

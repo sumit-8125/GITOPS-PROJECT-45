@@ -1,6 +1,6 @@
 replicaCount: 2
 image:
-  repository: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/cloudflux/backend
+  repository: 327425719754.dkr.ecr.ap-south-1.amazonaws.com/hitman-cloudflux/backend
   tag: REPLACE_ME
   pullPolicy: IfNotPresent
 service:
