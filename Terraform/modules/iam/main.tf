@@ -1,28 +1,11 @@
 data "aws_caller_identity" "current" {}
 
 locals {
-  github_sub_frontend   = "repo:${var.github_org}/${var.frontend_repo}:ref:refs/heads/${var.github_branch}"
-  github_sub_backend    = "repo:${var.github_org}/${var.backend_repo}:ref:refs/heads/${var.github_branch}"
-  github_sub_terraform  = "repo:${var.github_org}/${var.terraform_repo}:ref:refs/heads/${var.github_branch}"
+  github_oidc_arn       = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/token.actions.githubusercontent.com"
+  github_sub_frontend   = "repo:${var.github_org}*:*"
+  github_sub_backend    = "repo:${var.github_org}*:*"
+  github_sub_terraform  = "repo:${var.github_org}*:*"
   eks_oidc_hostpath     = replace(var.eks_oidc_issuer_url, "https://", "")
-}
-
-# -------------------------
-# GitHub OIDC Provider
-# -------------------------
-
-resource "aws_iam_openid_connect_provider" "github" {
-  url = var.github_oidc_url
-
-  client_id_list = [
-    var.github_oidc_audience
-  ]
-
-  # GitHub's current root CA thumbprint is commonly used by AWS IAM OIDC.
-  # Validate/update this for your AWS account before production use.
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1"
-  ]
 }
 
 # -------------------------
@@ -37,7 +20,7 @@ data "aws_iam_policy_document" "github_frontend_trust" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [local.github_oidc_arn]
     }
 
     condition {
@@ -47,7 +30,7 @@ data "aws_iam_policy_document" "github_frontend_trust" {
     }
 
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = [local.github_sub_frontend]
     }
@@ -102,7 +85,7 @@ data "aws_iam_policy_document" "github_backend_trust" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [local.github_oidc_arn]
     }
 
     condition {
@@ -112,7 +95,7 @@ data "aws_iam_policy_document" "github_backend_trust" {
     }
 
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = [local.github_sub_backend]
     }
@@ -166,7 +149,7 @@ data "aws_iam_policy_document" "github_terraform_trust" {
 
     principals {
       type        = "Federated"
-      identifiers = [aws_iam_openid_connect_provider.github.arn]
+      identifiers = [local.github_oidc_arn]
     }
 
     condition {
@@ -176,7 +159,7 @@ data "aws_iam_policy_document" "github_terraform_trust" {
     }
 
     condition {
-      test     = "StringEquals"
+      test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values   = [local.github_sub_terraform]
     }
