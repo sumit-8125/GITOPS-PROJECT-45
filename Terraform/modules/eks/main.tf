@@ -15,6 +15,9 @@ module "eks" {
   endpoint_public_access  = true
   endpoint_private_access = true
 
+  authentication_mode                         = "API_AND_CONFIG_MAP"
+  enable_cluster_creator_admin_permissions   = true
+
   eks_managed_node_groups = {
     default = {
       instance_types = var.node_instance_types
@@ -83,5 +86,7 @@ resource "aws_eks_addon" "ebs_csi" {
   cluster_name             = module.eks.cluster_name
   addon_name               = "aws-ebs-csi-driver"
   service_account_role_arn = aws_iam_role.ebs_csi.arn
+
+  depends_on = [module.eks.eks_managed_node_groups]
 }
 

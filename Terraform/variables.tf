@@ -50,7 +50,7 @@ variable "eks_version" {
 
 variable "node_instance_types" {
   type        = list(string)
-  default     = ["c7i-flex.large"]
+  default     = ["t3.large"]
 }
 
 variable "node_desired_size" {
