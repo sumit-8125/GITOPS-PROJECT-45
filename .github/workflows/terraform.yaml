@@ -81,6 +81,17 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
         run: terraform apply -auto-approve
+        timeout-minutes: 60
+
+      - name: Check EKS Node Group Diagnostics
+        if: failure()
+        run: |
+          echo "=== Checking EKS Node Group Status & Health ==="
+          aws eks describe-nodegroup \
+            --cluster-name hitman-cloudflux-prod \
+            --nodegroup-name default \
+            --region ${{ env.AWS_REGION }} \
+            --query 'nodegroup.[status,health,resources]' || true
 
       - name: Terraform Destroy
         if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'

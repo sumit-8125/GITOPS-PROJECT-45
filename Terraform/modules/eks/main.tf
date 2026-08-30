@@ -27,6 +27,14 @@ module "eks" {
       desired_size = var.desired_size
 
       subnet_ids = var.private_subnet_ids
+
+      iam_role_additional_policies = {
+        AmazonSSMManagedInstanceCore = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+      }
+
+      tags = {
+        NodeGroup = "default"
+      }
     }
   }
 

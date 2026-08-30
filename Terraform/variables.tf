@@ -50,7 +50,7 @@ variable "eks_version" {
 
 variable "node_instance_types" {
   type        = list(string)
-  default     = ["t3.large"]
+  default     = ["t3.large", "t3a.large", "m5.large"]
 }
 
 variable "node_desired_size" {
