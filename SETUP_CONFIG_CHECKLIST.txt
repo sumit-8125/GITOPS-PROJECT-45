@@ -10,10 +10,10 @@ must update with their real AWS, GitHub, Domain, and Slack configurations.
 ================================================================================
 
 A new user needs to know:
-  1. AWS_ACCOUNT_ID        : 12-digit AWS Account ID (e.g. 123456789012)
-  2. AWS_REGION            : AWS Region (e.g. ap-south-1)
-  3. GITHUB_ORG            : GitHub username or organization (e.g. sumit-8125)
-  4. GITHUB_REPO           : GitHub repository name (e.g. GITOPS-HITMAN-CLOUDFLUX-45)
+  1. AWS_ACCOUNT_ID        : 327425719754
+  2. AWS_REGION            : ap-south-1
+  3. GITHUB_ORG            : sumit-8125
+  4. GITHUB_REPO           : GITOPS-PROJECT-45
   5. DOMAIN_NAME           : Your custom domain/hostname (e.g. app.example.com)
   6. SLACK_WEBHOOK_URL     : Slack Incoming Webhook for #alerts channel
 
@@ -122,13 +122,13 @@ File: Helm/platform/monitoring/alertmanager-slack-secret.yaml
 Go to your GitHub Repo -> Settings -> Secrets and variables -> Actions -> New repository secret:
 
   1. Secret Name : AWS_TERRAFORM_ROLE_ARN
-     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-terraform
+     Secret Value: arn:aws:iam::327425719754:role/hitman-cloudflux-prod-github-terraform
 
   2. Secret Name : AWS_FRONTEND_ROLE_ARN
-     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-frontend-ecr
+     Secret Value: arn:aws:iam::327425719754:role/hitman-cloudflux-prod-github-frontend-ecr
 
   3. Secret Name : AWS_BACKEND_ROLE_ARN
-     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-backend-ecr
+     Secret Value: arn:aws:iam::327425719754:role/hitman-cloudflux-prod-github-backend-ecr
 
 --------------------------------------------------------------------------------
 [STEP 8] AWS SECRETS MANAGER (APPLICATION SECRETS)
