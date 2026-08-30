@@ -23,6 +23,11 @@ output "rds_endpoint" {
   value = module.rds.endpoint
 }
 
+output "rds_password" {
+  value     = module.rds.password
+  sensitive = true
+}
+
 output "backend_secret_arn" {
   value = module.secrets.secret_arn
 }
