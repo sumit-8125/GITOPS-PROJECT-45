@@ -14,6 +14,15 @@ on:
       - "Terraform/**"
       - ".github/workflows/terraform.yaml"
   workflow_dispatch:
+    inputs:
+      action:
+        description: "Select Terraform Action to execute:"
+        required: true
+        default: "apply"
+        type: choice
+        options:
+          - apply
+          - destroy
 
 permissions:
   id-token: write   # Required for AWS OIDC authentication (no static keys)
@@ -67,8 +76,13 @@ jobs:
 
       - name: Terraform Plan
         id: plan
+        if: github.event_name == 'push' || github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
         run: terraform plan -no-color
 
-      - name: Terraform Apply (Push or Manual Trigger on Main)
-        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'))
         run: terraform apply -auto-approve
+
+      - name: Terraform Destroy
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+        run: terraform destroy -auto-approve
