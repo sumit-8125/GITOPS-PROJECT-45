@@ -2,7 +2,7 @@ resource "aws_ecr_repository" "this" {
   for_each = var.repositories
 
   name                 = each.value
-  image_tag_mutability = "IMMUTABLE"
+  image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
     scan_on_push = true
@@ -30,11 +30,11 @@ resource "aws_ecr_lifecycle_policy" "this" {
       },
       {
         rulePriority = 2
-        description  = "Keep latest 20 tagged images"
+        description  = "Keep latest 10 tagged images"
         selection = {
           tagStatus   = "any"
           countType   = "imageCountMoreThan"
-          countNumber = 20
+          countNumber = 10
         }
         action = {
           type = "expire"

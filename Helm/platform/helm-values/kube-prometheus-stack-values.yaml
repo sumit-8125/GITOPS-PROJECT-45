@@ -1,0 +1,179 @@
+# kube-prometheus-stack Helm Values for CloudFlux GitOps Platform
+# Architecture: Prometheus (15d retention) + Grafana + Alertmanager (Slack #alerts)
+
+global:
+  rbac:
+    create: true
+
+# ----------------------------------------------------------------------
+# Prometheus Configuration
+# ----------------------------------------------------------------------
+prometheus:
+  enabled: true
+  prometheusSpec:
+    # 15 days metrics retention as specified in CloudFlux architecture
+    retention: 15d
+    retentionSize: 45GiB
+    scrapeInterval: 30s
+    evaluationInterval: 30s
+
+    # Discover ServiceMonitors & PrometheusRules across all namespaces
+    serviceMonitorSelectorNilUsesHelmValues: false
+    serviceMonitorSelector: {}
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
+    ruleSelectorNilUsesHelmValues: false
+    ruleSelector: {}
+
+    # Resource requests and limits for stable operation
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1024Mi
+      limits:
+        cpu: 1000m
+        memory: 2048Mi
+
+    # Persistent storage using AWS EBS CSI driver (gp3)
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 50Gi
+
+# ----------------------------------------------------------------------
+# Alertmanager Configuration (Slack #alerts routing)
+# ----------------------------------------------------------------------
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+  config:
+    global:
+      resolve_timeout: 5m
+      # Replace with your actual Slack Webhook URL or reference via Kubernetes Secret
+      slack_api_url: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK_URL"
+
+    route:
+      group_by: ["alertname", "namespace", "job", "severity"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+      receiver: "slack-alerts"
+      routes:
+        - match:
+            alertname: Watchdog
+          receiver: "null"
+        - receiver: "slack-alerts"
+          continue: true
+
+    receivers:
+      - name: "null"
+      - name: "slack-alerts"
+        slack_configs:
+          - channel: "#alerts"
+            send_resolved: true
+            icon_emoji: ":warning:"
+            title: "{{ if eq .Status \"firing\" }}:rotating_light: [FIRING:{{ .Alerts.Firing | len }}]{{ else }}:white_check_mark: [RESOLVED]{{ end }} {{ .CommonLabels.alertname }} ({{ .CommonLabels.severity | toUpper }})"
+            text: >-
+              *Namespace:* `{{ .CommonLabels.namespace }}`
+              *Summary:* {{ .CommonAnnotations.summary }}
+              *Description:* {{ .CommonAnnotations.description }}
+              *Details:*
+              {{ range .Alerts }}
+                • *Severity:* `{{ .Labels.severity }}` | *Pod/Instance:* `{{ .Labels.pod }}{{ .Labels.instance }}`
+              {{ end }}
+
+# ----------------------------------------------------------------------
+# Grafana Configuration & Dashboards
+# ----------------------------------------------------------------------
+grafana:
+  enabled: true
+  adminPassword: "prom-operator" # Recommended: Change or inject via Secret for production
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    size: 10Gi
+    accessModes: ["ReadWriteOnce"]
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # Automatically import Dashboards labeled with grafana_dashboard: "1"
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      searchNamespace: ALL
+    datasources:
+      enabled: true
+      defaultDatasourceEnabled: true
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: "default"
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+# ----------------------------------------------------------------------
+# Exporters & Metrics Providers
+# ----------------------------------------------------------------------
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
+
+# Enable default core Kubernetes alert rules
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: false # Managed by AWS EKS control plane
+    general: true
+    k8s: true
+    kubeApiserver: false # Managed by AWS EKS control plane
+    kubeApiserverAvailability: false
+    kubeApiserverSlos: false
+    kubelet: true
+    kubeProxy: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: true
+    kubernetesSystem: true
+    node: true
+    prometheus: true
+    prometheusOperator: true

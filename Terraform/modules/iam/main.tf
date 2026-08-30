@@ -269,7 +269,10 @@ data "aws_iam_policy_document" "alb_controller_trust" {
     condition {
       test     = "StringEquals"
       variable = "${local.eks_oidc_hostpath}:sub"
-      values   = ["system:serviceaccount:kube-system:aws-load-balancer-controller"]
+      values   = [
+        "system:serviceaccount:kube-system:aws-load-balancer-controller",
+        "system:serviceaccount:aws-load-balancer-controller:aws-load-balancer-controller"
+      ]
     }
   }
 }
@@ -531,3 +534,5 @@ resource "aws_iam_role_policy_attachment" "alb_controller" {
   role       = aws_iam_role.alb_controller.name
   policy_arn = aws_iam_policy.alb_controller.arn
 }
+
+

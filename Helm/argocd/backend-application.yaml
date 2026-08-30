@@ -4,9 +4,9 @@ metadata: {name: backend, namespace: argocd}
 spec:
   project: default
   source:
-    repoURL: https://github.com/YOUR_GITHUB_ORG/gitops-repo.git
+    repoURL: https://github.com/sumit-8125/GITOPS-PROJECT-45.git
     targetRevision: main
-    path: apps/backend
+    path: Helm/apps/backend
   destination:
     server: https://kubernetes.default.svc
     namespace: backend

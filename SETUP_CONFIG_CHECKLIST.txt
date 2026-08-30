@@ -1,0 +1,187 @@
+================================================================================
+CLOUDFLUX GITOPS PLATFORM ON AWS EKS — NEW USER SETUP & CONFIGURATION CHECKLIST
+================================================================================
+
+This file contains the complete list of files and placeholders that a new user
+must update with their real AWS, GitHub, Domain, and Slack configurations.
+
+================================================================================
+1. SUMMARY OF VALUES TO REPLACE
+================================================================================
+
+A new user needs to know:
+  1. AWS_ACCOUNT_ID        : 12-digit AWS Account ID (e.g. 123456789012)
+  2. AWS_REGION            : AWS Region (e.g. ap-south-1)
+  3. GITHUB_ORG            : GitHub username or organization (e.g. sumit-8125)
+  4. GITHUB_REPO           : GitHub repository name (e.g. GITOPS-HITMAN-CLOUDFLUX-45)
+  5. DOMAIN_NAME           : Your custom domain/hostname (e.g. app.example.com)
+  6. SLACK_WEBHOOK_URL     : Slack Incoming Webhook for #alerts channel
+
+================================================================================
+2. STEP-BY-STEP FILE CHECKLIST
+================================================================================
+
+--------------------------------------------------------------------------------
+[STEP 1] TERRAFORM VARIABLES
+--------------------------------------------------------------------------------
+File: Terraform/terraform.tfvars
+  - Update 'aws_region'    : "ap-south-1" (or your preferred region)
+  - Update 'project_name'  : "hitman-cloudflux" (or your project name)
+  - Update 'environment'   : "prod"
+  - Update 'github_org'    : "<YOUR_GITHUB_USERNAME_OR_ORG>"
+  - Update 'frontend_repo' : "<YOUR_GITHUB_REPO_NAME>"
+  - Update 'backend_repo'  : "<YOUR_GITHUB_REPO_NAME>"
+  - Update 'terraform_repo': "<YOUR_GITHUB_REPO_NAME>"
+  - Update 'secret_name'   : "hitman-cloudflux/prod/backend"
+
+--------------------------------------------------------------------------------
+[STEP 2] HELM APPLICATION CHARTS (ECR URLs & DOMAIN)
+--------------------------------------------------------------------------------
+File: Helm/apps/frontend/values.yaml
+  - Line 3: image.repository
+      Change: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/hitman-cloudflux/frontend
+      To    : <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/hitman-cloudflux/frontend
+  - Line 14: ingress.host
+      Change: app.example.com
+      To    : <YOUR_DOMAIN_NAME> (e.g. app.yourdomain.com)
+
+File: Helm/apps/backend/values.yaml
+  - Line 3: image.repository
+      Change: ACCOUNT_ID.dkr.ecr.ap-south-1.amazonaws.com/hitman-cloudflux/backend
+      To    : <AWS_ACCOUNT_ID>.dkr.ecr.<AWS_REGION>.amazonaws.com/hitman-cloudflux/backend
+  - Line 25: ingress.host
+      Change: app.example.com
+      To    : <YOUR_DOMAIN_NAME> (e.g. app.yourdomain.com)
+
+--------------------------------------------------------------------------------
+[STEP 3] PLATFORM CONTROLLERS (AWS LOAD BALANCER & EXTERNAL SECRETS)
+--------------------------------------------------------------------------------
+File: Helm/platform/helm-values/aws-load-balancer-controller-values.yaml
+  - Line 8: serviceAccount.annotations.eks.amazonaws.com/role-arn
+      Change: arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-aws-lb-controller
+      To    : arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-aws-lb-controller
+
+File: Helm/platform/helm-values/external-secrets-values.yaml
+  - Line 6: serviceAccount.annotations.eks.amazonaws.com/role-arn
+      Change: arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-eso
+      To    : arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-eso
+
+--------------------------------------------------------------------------------
+[STEP 4] PLATFORM RBAC MANIFESTS
+--------------------------------------------------------------------------------
+File: Helm/rbac/aws-load-balancer-controller.yaml
+  - Line 7: metadata.annotations.eks.amazonaws.com/role-arn
+      Change: arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-aws-lb-controller
+      To    : arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-aws-lb-controller
+
+File: Helm/rbac/external-secrets.yaml
+  - Line 7: metadata.annotations.eks.amazonaws.com/role-arn
+      Change: arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-eso
+      To    : arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-eso
+
+--------------------------------------------------------------------------------
+[STEP 5] ARGOCD APPLICATIONS (GITOPS REPO SOURCE)
+--------------------------------------------------------------------------------
+File: Helm/argocd/frontend-application.yaml
+  - Line 7: spec.source.repoURL
+      Change: https://github.com/sumit-8125/GITOPS-HITMAN-CLOUDFLUX-45.git
+      To    : https://github.com/<YOUR_GITHUB_ORG>/<YOUR_REPO>.git
+
+File: Helm/argocd/backend-application.yaml
+  - Line 7: spec.source.repoURL
+      Change: https://github.com/sumit-8125/GITOPS-HITMAN-CLOUDFLUX-45.git
+      To    : https://github.com/<YOUR_GITHUB_ORG>/<YOUR_REPO>.git
+
+File: Helm/argocd/monitoring-application.yaml
+  - Line 23: spec.sources[1].repoURL
+      Change: https://github.com/sumit-8125/GITOPS-HITMAN-CLOUDFLUX-45.git
+      To    : https://github.com/<YOUR_GITHUB_ORG>/<YOUR_REPO>.git
+  - Line 41: spec.source.repoURL
+      Change: https://github.com/sumit-8125/GITOPS-HITMAN-CLOUDFLUX-45.git
+      To    : https://github.com/<YOUR_GITHUB_ORG>/<YOUR_REPO>.git
+
+--------------------------------------------------------------------------------
+[STEP 6] OBSERVABILITY & MONITORING STACK (SLACK ALERTS & GRAFANA)
+--------------------------------------------------------------------------------
+File: Helm/platform/helm-values/kube-prometheus-stack-values.yaml
+  - Line 74: alertmanager.config.global.slack_api_url
+      Change: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK_URL"
+      To    : "<YOUR_ACTUAL_SLACK_WEBHOOK_URL>"
+  - Line 97: grafana.adminPassword
+      Change: "prom-operator"
+      To    : "<YOUR_CUSTOM_GRAFANA_PASSWORD>"
+
+File: Helm/platform/monitoring/alertmanager-slack-secret.yaml
+  - Line 9: stringData.slack-webhook-url
+      Change: "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK_URL"
+      To    : "<YOUR_ACTUAL_SLACK_WEBHOOK_URL>"
+
+--------------------------------------------------------------------------------
+[STEP 7] GITHUB REPOSITORY SECRETS (GITHUB WEB UI)
+--------------------------------------------------------------------------------
+Go to your GitHub Repo -> Settings -> Secrets and variables -> Actions -> New repository secret:
+
+  1. Secret Name : AWS_TERRAFORM_ROLE_ARN
+     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-terraform
+
+  2. Secret Name : AWS_FRONTEND_ROLE_ARN
+     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-frontend-ecr
+
+  3. Secret Name : AWS_BACKEND_ROLE_ARN
+     Secret Value: arn:aws:iam::<AWS_ACCOUNT_ID>:role/hitman-cloudflux-prod-github-backend-ecr
+
+--------------------------------------------------------------------------------
+[STEP 8] AWS SECRETS MANAGER (APPLICATION SECRETS)
+--------------------------------------------------------------------------------
+In AWS Management Console -> Secrets Manager -> Create Secret:
+  Secret Name: hitman-cloudflux/prod/backend
+  Secret Type: Other type of secret (Key/value)
+  Secret Keys:
+    - DATABASE_URL : postgresql://<DB_USER>:<DB_PASS>@<RDS_ENDPOINT>:5432/<DB_NAME>
+    - JWT_SECRET   : <YOUR_RANDOM_JWT_SECRET_STRING>
+    - CORS_ORIGINS : https://<YOUR_DOMAIN_NAME>
+
+================================================================================
+3. DEPLOYMENT EXECUTION ORDER
+================================================================================
+
+1. Apply Terraform Infrastructure:
+   $ cd Terraform
+   $ terraform init
+   $ terraform plan
+   $ terraform apply
+
+2. Update your local kubeconfig:
+   $ aws eks update-kubeconfig --region ap-south-1 --name hitman-cloudflux-prod
+
+3. Bootstrap Namespaces:
+   $ kubectl apply -f Helm/bootstrap/namespaces.yaml
+
+4. Apply RBAC:
+   $ kubectl apply -f Helm/rbac/argocd.yaml
+   $ kubectl apply -f Helm/rbac/aws-load-balancer-controller.yaml
+   $ kubectl apply -f Helm/rbac/external-secrets.yaml
+
+5. Deploy Platform Controllers (ALB Controller & External Secrets):
+   $ helm repo add eks https://aws.github.io/eks-charts
+   $ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+       -n aws-load-balancer-controller \
+       -f Helm/platform/helm-values/aws-load-balancer-controller-values.yaml
+
+   $ helm repo add external-secrets https://charts.external-secrets.io
+   $ helm upgrade --install external-secrets external-secrets/external-secrets \
+       -n external-secrets \
+       -f Helm/platform/helm-values/external-secrets-values.yaml
+
+   $ kubectl apply -f Helm/platform/external-secrets/clustersecretstore.yaml
+
+6. Deploy Observability Stack (Prometheus + Grafana + Alertmanager):
+   $ kubectl apply -f Helm/argocd/monitoring-application.yaml
+
+7. Deploy Applications via ArgoCD:
+   $ kubectl apply -f Helm/argocd/backend-application.yaml
+   $ kubectl apply -f Helm/argocd/frontend-application.yaml
+
+================================================================================
+DONE! Your CloudFlux GitOps Platform is 100% production ready.
+================================================================================

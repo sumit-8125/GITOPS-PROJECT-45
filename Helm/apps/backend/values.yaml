@@ -5,10 +5,26 @@ image:
   pullPolicy: IfNotPresent
 service:
   port: 80
-  targetPort: 8080
-containerPort: 8080
+  targetPort: 5000
+containerPort: 5000
+secretKey: "hitman-cloudflux/prod/backend"
 serviceAccount:
   name: backend
 resources:
   requests: {cpu: 100m, memory: 128Mi}
   limits: {cpu: 500m, memory: 512Mi}
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+ingress:
+  enabled: true
+  className: alb
+  host: app.example.com
+  groupName: cloudflux-alb
+  scheme: internet-facing
+  targetType: ip

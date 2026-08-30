@@ -1,0 +1,90 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cloudflux-platform-alerts
+  namespace: monitoring
+  labels:
+    role: alert-rules
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: cloudflux.workload.rules
+      rules:
+        # --------------------------------------------------------------------
+        # 1. CrashLoopBackOff Alert (Pod Restarting / Crashing)
+        # --------------------------------------------------------------------
+        - alert: PodCrashLooping
+          expr: |
+            kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"} == 1
+            or
+            increase(kube_pod_container_status_restarts_total[5m]) > 2
+          for: 2m
+          labels:
+            severity: critical
+            tier: platform
+          annotations:
+            summary: "Pod {{ $labels.pod }} is in CrashLoopBackOff or restarting frequently"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} (container: {{ $labels.container }}) has restarted multiple times or is stuck in CrashLoopBackOff state."
+            runbook_url: "https://github.com/sumit-8125/GITOPS-PROJECT-45/blob/main/Helm/platform/monitoring/README.md#troubleshooting-crashloopbackoff"
+
+        # --------------------------------------------------------------------
+        # 2. High Memory Usage Alerts (Container & Node > 85%)
+        # --------------------------------------------------------------------
+        - alert: ContainerHighMemoryUsage
+          expr: |
+            (
+              sum(container_memory_working_set_bytes{container!="", container!="POD"}) by (namespace, pod, container)
+              /
+              sum(container_spec_memory_limit_bytes{container!="", container!="POD"} > 0) by (namespace, pod, container)
+            ) * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+            tier: workload
+          annotations:
+            summary: "Container {{ $labels.container }} in Pod {{ $labels.pod }} memory usage > 85%"
+            description: "Container {{ $labels.container }} in Pod {{ $labels.pod }} (Namespace: {{ $labels.namespace }}) is consuming {{ $value | printf \"%.2f\" }}% of its configured memory limit."
+
+        - alert: NodeHighMemoryUsage
+          expr: |
+            (
+              (node_memory_MemTotal_bytes - (node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes))
+              /
+              node_memory_MemTotal_bytes
+            ) * 100 > 85
+          for: 5m
+          labels:
+            severity: warning
+            tier: infrastructure
+          annotations:
+            summary: "Node {{ $labels.instance }} memory usage is above 85%"
+            description: "EKS Worker Node {{ $labels.instance }} memory utilization has reached {{ $value | printf \"%.2f\" }}% for over 5 minutes."
+
+        # --------------------------------------------------------------------
+        # 3. Replica Mismatch Alert (Available != Desired Replicas)
+        # --------------------------------------------------------------------
+        - alert: DeploymentReplicaMismatch
+          expr: |
+            (
+              kube_deployment_spec_replicas{namespace=~"frontend|backend|default|monitoring"}
+              !=
+              kube_deployment_status_replicas_available{namespace=~"frontend|backend|default|monitoring"}
+            )
+          for: 5m
+          labels:
+            severity: critical
+            tier: workload
+          annotations:
+            summary: "Deployment {{ $labels.deployment }} has replica mismatch"
+            description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has had a replica mismatch for more than 5 minutes. Desired vs available replicas do not match."
+
+        - alert: DeploymentReplicasUnavailable
+          expr: |
+            kube_deployment_status_replicas_unavailable{namespace=~"frontend|backend|default|monitoring"} > 0
+          for: 5m
+          labels:
+            severity: critical
+            tier: workload
+          annotations:
+            summary: "Deployment {{ $labels.deployment }} has unavailable replicas"
+            description: "Deployment {{ $labels.deployment }} in namespace {{ $labels.namespace }} has {{ $value }} unavailable replica(s) for more than 5 minutes."

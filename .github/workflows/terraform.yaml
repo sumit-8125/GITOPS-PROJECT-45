@@ -1,0 +1,67 @@
+name: "01 - Terraform CI/CD Pipeline"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "Terraform/**"
+      - ".github/workflows/terraform.yaml"
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # Required for AWS OIDC authentication (no static keys)
+  contents: read
+
+env:
+  AWS_REGION: "ap-south-1"
+  # Replace with your AWS Account ID or set as GitHub Action Secret: AWS_TERRAFORM_ROLE_ARN
+  ROLE_TO_ASSUME: ${{ secrets.AWS_TERRAFORM_ROLE_ARN || 'arn:aws:iam::ACCOUNT_ID:role/hitman-cloudflux-prod-github-terraform' }}
+  TF_WORKING_DIR: "./Terraform"
+
+jobs:
+  terraform:
+    name: "Terraform Plan & Apply"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.TF_WORKING_DIR }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Assume AWS Role via OIDC (No Static Keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: GitHubActionsTerraformSession
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.8.5"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color
+
+      - name: Terraform Apply (Main Branch Only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform apply -auto-approve

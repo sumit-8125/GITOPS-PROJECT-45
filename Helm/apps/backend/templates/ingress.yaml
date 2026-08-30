@@ -2,13 +2,13 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: frontend
-  namespace: frontend
+  name: backend
+  namespace: backend
   annotations:
     alb.ingress.kubernetes.io/scheme: {{ .Values.ingress.scheme | default "internet-facing" | quote }}
     alb.ingress.kubernetes.io/target-type: {{ .Values.ingress.targetType | default "ip" | quote }}
     alb.ingress.kubernetes.io/group.name: {{ .Values.ingress.groupName | default "cloudflux-alb" | quote }}
-    alb.ingress.kubernetes.io/group.order: "20"
+    alb.ingress.kubernetes.io/group.order: "10"
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
 spec:
   ingressClassName: {{ .Values.ingress.className | default "alb" }}
@@ -16,11 +16,11 @@ spec:
   - host: {{ .Values.ingress.host }}
     http:
       paths:
-      - path: /
+      - path: /api
         pathType: Prefix
         backend:
           service:
-            name: frontend
+            name: backend
             port:
               number: {{ .Values.service.port }}
 {{- end }}

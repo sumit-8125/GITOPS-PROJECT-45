@@ -46,3 +46,8 @@ output "eso_role_arn" {
 output "alb_controller_role_arn" {
   value = module.iam.alb_controller_role_arn
 }
+
+output "ebs_csi_role_arn" {
+  value = module.eks.ebs_csi_role_arn
+}
+
